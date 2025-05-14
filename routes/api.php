@@ -26,7 +26,8 @@ Route::prefix('admin')->group(function(){
     Route::post('logout',[AdminController::class,'logoutAdmin']);
    });
 });
-
+Route::post('/login/googleC2', [UserController::class, 'loginGoogleC2']);
+Route::post('login/google', [UserController::class, 'loginGoogle']);
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail']);
 Route::post('/reset-password', [ForgotPasswordController::class, 'reset']);
 Route::prefix('user')->group(function(){

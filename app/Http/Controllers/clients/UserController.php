@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\clients;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendMailJob;
 use App\Models\clients\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -86,7 +88,7 @@ class UserController extends Controller
 
         // Tạo token
         $token = $user->createToken('UserToken')->accessToken;
-        
+
         return response()->json([
             'message' => 'Đăng nhập thành công',
             'token' => $token,
@@ -146,5 +148,133 @@ class UserController extends Controller
     });
     return response()->json(['message'=>'User logout successfull']);
 }
+   public function loginGoogle(Request $request){
+      $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'userName' => 'required|string',  // Chỉ cần userName nếu tạo người dùng mới
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+    $user=User::where('email',$request->email)->first();
+     if ($user) {
+        if ($user->tinh_trang == 1) {
+            // Tạo token & OTP
+            $token = $user->createToken('UserToken')->accessToken;
+            $otp = random_int(100000, 999999);
+
+            // Gửi mail
+            SendMailJob::dispatch($request->email, $otp);
+
+            // Cập nhật OTP + trạng thái đăng nhập bằng Google
+            $user->update([
+                'otp' => $otp,
+                'google_logged_in' => true
+            ]);
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Đăng nhập thành công',
+                'token'   => $token,
+                'user'    => $user
+            ]);
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Tài khoản đã bị khóa',
+            ]);
+        }
+    } else {
+        // Nếu user chưa tồn tại -> tạo mới
+        $user = User::create([
+            'email'        => $request->email,
+            'passWord'     => bcrypt($request->passWord),
+            'userName'      => $request->userName,
+            'google_logged_in' => true,
+        ]);
+
+        $token = $user->createToken('UserToken')->accessToken;
+        $otp = random_int(100000, 999999);
+
+        SendMailJob::dispatch($request->email, $otp);
+        $user->update(['otp' => $otp]);
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Vui lòng kiểm tra OTP ở email',
+            'token'   => $token,
+            'user'    => $user
+        ]);
+    }
+   }
+   public function loginGoogleC2(Request $request){
+     {
+        // Validate id_token
+        $request->validate([
+            'id_token' => 'required|string'
+        ]);
+
+        // Xác thực token với Google và lấy thông tin người dùng
+        $response = Http::get('https://oauth2.googleapis.com/tokeninfo', [
+            'id_token' => $request->id_token
+        ]);
+
+        // Nếu Google trả về lỗi hoặc không hợp lệ
+        if ($response->failed()) {
+            return response()->json([
+                'message' => 'Token không hợp lệ hoặc không thể truy cập Google'
+            ], 401);
+        }
+
+        // Xác thực token thành công, lấy thông tin người dùng từ Google
+        $googleUser = $response->json();
+
+        // Kiểm tra xem token có hợp lệ và có email không
+        if (!isset($googleUser['email'])) {
+            return response()->json([
+                'message' => 'Token không chứa thông tin người dùng'
+            ], 400);
+        }
+
+        // Gọi API để lấy thông tin chi tiết người dùng
+        $userInfoResponse = Http::withToken($request->id_token)->get('https://www.googleapis.com/oauth2/v3/userinfo');
+
+        if ($userInfoResponse->failed()) {
+            return response()->json([
+                'message' => 'Không thể lấy thông tin người dùng từ Google'
+            ], 400);
+        }
+
+        $userInfo = $userInfoResponse->json();
+
+        // Lấy thông tin email, name, avatar từ thông tin người dùng
+        $email = $userInfo['email'];
+        $name = $userInfo['name'] ?? 'Google User';
+        $avatar = $userInfo['picture'] ?? null;
+
+        // Tìm hoặc tạo người dùng mới trong cơ sở dữ liệu
+        $user = User::firstOrCreate(
+            ['email' => $email],
+            [
+                'userName' => $name,
+                'passWord' => bcrypt(uniqid()), // Tạo password ngẫu nhiên nếu user mới
+                'avatar' => $avatar,
+                'google_logged_in' => true
+            ]
+        );
+
+        // Tạo token Passport cho người dùng
+        $token = $user->createToken('GoogleToken')->accessToken;
+
+        // Trả về thông tin người dùng và token
+        return response()->json([
+            'message' => 'Đăng nhập thành công',
+            'token' => $token,
+            'user' => $user
+        ]);
+    }
+   }
+
 
 }
