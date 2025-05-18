@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\admin\AdminController;
 use App\Http\Controllers\clients\ForgotPasswordController;
+use App\Http\Controllers\clients\TourController;
 use App\Http\Controllers\clients\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -37,5 +38,11 @@ Route::prefix('user')->group(function(){
         Route::get('/detail/{id}',[UserController::class,'index']);
         Route::put('/update/one/{id}',[UserController::class,'update']);
         Route::post('logout',[UserController::class,'logout']);
+        //TOUR
+        Route::get('/tour',[TourController::class,'index']);
+        Route::get('/tour/{id}',[TourController::class,'show']);
+        Route::post('/tour',[TourController::class,'store']);
+        Route::put('/tour/{id}',[TourController::class,'update']);
+        Route::delete('/tour/{id}',[TourController::class,'destroy']);
     });
 });
