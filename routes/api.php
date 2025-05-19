@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\admin\AdminController;
+use App\Http\Controllers\clients\BookingController;
 use App\Http\Controllers\clients\ForgotPasswordController;
+use App\Http\Controllers\clients\ReasonController;
 use App\Http\Controllers\clients\TourController;
 use App\Http\Controllers\clients\UserController;
 use Illuminate\Http\Request;
@@ -25,6 +27,21 @@ Route::prefix('admin')->group(function(){
     Route::get('/detailUser/{id}',[AdminController::class,'show']);
     Route::get('/detail/{id}',[AdminController::class,'index']);
     Route::post('logout',[AdminController::class,'logoutAdmin']);
+    //TOUR
+    Route::get('/tour/{id}',[TourController::class,'show']);
+    Route::delete('/tour/{id}',[TourController::class,'destroy']);
+    Route::put('/tour/{id}',[TourController::class,'update']);
+    Route::post('/tour',[TourController::class,'store']);
+    //Booking
+    Route::get('/booking',[BookingController::class,'index']);
+    Route::get('/booking/{id}',[BookingController::class,'show']);
+    //Reason
+    Route::get('/reason',[ReasonController::class,'index']);
+    Route::get('/reason/{id}',[ReasonController::class,'show']);
+    Route::post('/reason',[ReasonController::class,'store']);
+    Route::put('/reason/{id}',[ReasonController::class,'update']);
+    Route::delete('/reason/{id}',[ReasonController::class,'destroy']);
+
    });
 });
 Route::post('/login/googleC2', [UserController::class, 'loginGoogleC2']);
@@ -40,9 +57,10 @@ Route::prefix('user')->group(function(){
         Route::post('logout',[UserController::class,'logout']);
         //TOUR
         Route::get('/tour',[TourController::class,'index']);
-        Route::get('/tour/{id}',[TourController::class,'show']);
-        Route::post('/tour',[TourController::class,'store']);
-        Route::put('/tour/{id}',[TourController::class,'update']);
-        Route::delete('/tour/{id}',[TourController::class,'destroy']);
+        //Booking
+        Route::post('booking',[BookingController::class,'store']);
+        Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
+        //Reason cancel Booking
+        Route::get('/reason',[ReasonController::class,'index']);
     });
 });

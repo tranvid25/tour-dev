@@ -24,5 +24,7 @@ class Tour extends Model
         'title'
     ];
     public $timestamps = false;
-
+    public function bookings(){
+        return $this->hasMany(Booking::class);
+    }
 }
