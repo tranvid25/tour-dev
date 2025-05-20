@@ -70,7 +70,7 @@ Route::prefix('user')->group(function(){
         Route::get('/tours/{tour}/like',[LikeController::class,'isLikedByMe']);
         Route::post('/tours/{tour}/like',[LikeController::class,'toggleLike']);
         //Payment
-        Route::get('/payment/vnpay', [PaymentController::class, 'vnpay_payment'])->name('payment.vnpay');
+        Route::post('/payment/vnpay', [PaymentController::class, 'vnpay_payment'])->name('payment.vnpay');
         Route::get('/payment/vnpay-return', [PaymentController::class, 'vnPayReturn']);
 
     });
