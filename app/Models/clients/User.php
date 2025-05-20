@@ -37,4 +37,8 @@ class User extends Authenticatable
        'updated'=>UserUpdated::class,
        'deleted'=>UserDeleted::class
     ];
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class,'userId');
+    }
 }

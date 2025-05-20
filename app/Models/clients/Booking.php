@@ -15,6 +15,7 @@ class Booking extends Model
       'tourId',
       'userId',
       'bookingDate',
+      'order_code',
       'numAdults',
       'numChildren',
       'totalPrice',

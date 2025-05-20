@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\clients\Booking;
 use App\Models\clients\Tour;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Predis\Command\Redis\TIME;
 
 class BookingController extends Controller
 {
@@ -50,6 +52,7 @@ class BookingController extends Controller
     DB::beginTransaction();
     try {
         $totalPrice = ($tour->priceAdult * $request->numAdults) + ($tour->priceChild * $request->numChildren);
+        $orderCode='ORDER' .time();
         $booking = Booking::create([
             'tourId' => $tour->tourId,
             'userId' => auth()->id(),
@@ -57,6 +60,7 @@ class BookingController extends Controller
             'numAdults' => $request->numAdults,
             'numChildren' => $request->numChildren,
             'totalPrice' => $totalPrice,
+            'order_code'=>$orderCode,
             'bookingStatus' => 'pending',
             'specicalRequestes' => $request->specicalRequestes // đúng tên
         ]);
@@ -65,10 +69,14 @@ class BookingController extends Controller
         $tour->save();
 
         DB::commit();
-
+        //tạo link thanh toánVNPAY với $orderCode và $totalprice
+        $paymentUrl = "/api/user/payment/vnpay"
+                    . "?order_code={$orderCode}"
+                    . "&total_price={$totalPrice}";
         return response()->json([
             'message' => 'Đặt tour thành công!',
-            'booking' => $booking
+            'booking' => $booking,
+            'payment_url' => $paymentUrl
         ]);
     } catch (\Throwable $th) {
         DB::rollBack();
@@ -91,6 +99,11 @@ class BookingController extends Controller
         'message'=>'Chi tiết booking',
         'bookings'=>$bookings
       ]);
+    }
+    public function myBookings(){
+        $user=Auth::id();
+        $bookings=Booking::with('tour')->where('userId',$user)->get();
+        return response()->json($bookings);
     }
 
     /**

@@ -25,6 +25,9 @@ class Tour extends Model
     ];
     public $timestamps = false;
     public function bookings(){
-        return $this->hasMany(Booking::class);
+        return $this->hasMany(Booking::class,'tourId');
+    }
+    public function likes(){
+        return $this->hasMany(Like::class,'tourId');
     }
 }

@@ -3,6 +3,8 @@
 use App\Http\Controllers\admin\AdminController;
 use App\Http\Controllers\clients\BookingController;
 use App\Http\Controllers\clients\ForgotPasswordController;
+use App\Http\Controllers\clients\LikeController;
+use App\Http\Controllers\clients\PaymentController;
 use App\Http\Controllers\clients\ReasonController;
 use App\Http\Controllers\clients\TourController;
 use App\Http\Controllers\clients\UserController;
@@ -58,9 +60,18 @@ Route::prefix('user')->group(function(){
         //TOUR
         Route::get('/tour',[TourController::class,'index']);
         //Booking
+        Route::get('/bookingUser',[BookingController::class,'myBookings']);
         Route::post('booking',[BookingController::class,'store']);
         Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel']);
+
         //Reason cancel Booking
         Route::get('/reason',[ReasonController::class,'index']);
+        //Like
+        Route::get('/tours/{tour}/like',[LikeController::class,'isLikedByMe']);
+        Route::post('/tours/{tour}/like',[LikeController::class,'toggleLike']);
+        //Payment
+        Route::get('/payment/vnpay', [PaymentController::class, 'vnpay_payment'])->name('payment.vnpay');
+        Route::get('/payment/vnpay-return', [PaymentController::class, 'vnPayReturn']);
+
     });
 });

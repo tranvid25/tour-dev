@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\clients;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BookingResource;
+use App\Models\clients\Booking;
 use App\Models\clients\Tour;
+use App\Models\clients\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Intervention\Image\ImageManagerStatic as Image;
 class TourController extends Controller
 {
