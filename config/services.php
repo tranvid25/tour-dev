@@ -40,6 +40,11 @@ return [
     'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
     'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
+    'passport'=>[
+        'login_endpoint'=>env('APP_URL') . '/oauth/token',
+        'client_id'=>env('ClientID'),
+        'client_secret'=>env('Clientsecret'),
+    ]
 
 
 ];
